@@ -7,6 +7,8 @@ using WowDotNetAPI;
 using WowDotNetAPI.Models;
 using System.Web;
 using Newtonsoft.Json;
+using System.Net;
+using System.Net.Http;
 
 namespace TransmogDBEngine
 {
@@ -18,16 +20,16 @@ namespace TransmogDBEngine
         {
 
             //// Get a random realm
-            //string realm = GetRandomRealm();
-            //Console.WriteLine($"{DateTime.Now}: [+] Selected: {realm}");
+            // string realm = GetRandomRealm();
+            // Console.WriteLine($"{DateTime.Now}: [+] Selected: {realm}");
 
             //// Select a random auction owner
-            //string auctionOwner = GetRandomAuctionOwner(realm);
-            //Console.WriteLine($"{DateTime.Now}: [+] Selected: {auctionOwner}");
+            // string auctionOwner = GetRandomAuctionOwner(realm);
+            // Console.WriteLine($"{DateTime.Now}: [+] Selected: {auctionOwner}");
 
             //// Get guild information
-            //string guild = GetGuild(realm, auctionOwner);
-            //Console.WriteLine($"{DateTime.Now}: [+] Guild is: {guild}" );
+            // string guild = GetGuild(realm, auctionOwner);
+            // Console.WriteLine($"{DateTime.Now}: [+] Guild is: {guild}" );
 
             //DEBUG
             string realm = "Aggramar";
@@ -57,9 +59,16 @@ namespace TransmogDBEngine
                     // Create Transmog Object
                     WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
                     Character character = explorer.GetCharacter(member.Character.Realm, member.Character.Name, CharacterOptions.GetEverything);
-                    Transmog tmog = new Transmog(character, TransmogrifiedItems);
+                    //Transmog tmog = new Transmog(character, TransmogrifiedItems);
+                    Transmog tmog = new Transmog(character);
 
-                    Console.WriteLine(JsonConvert.SerializeObject(tmog));
+
+                    // Console.WriteLine(JsonConvert.SerializeObject(tmog));
+                    // Post the transmog to the API
+                    string url = "http://localhost:50392/api/REST/Add";
+                    Console.WriteLine($"{DateTime.Now}: [*] Posting JSON to {url}");
+                    Console.WriteLine(PostTransmog(url, tmog));
+
                 }
                 else
                 {
@@ -222,6 +231,19 @@ namespace TransmogDBEngine
             url = $"{url}/{thumbnailUrl}";
 
             return url;
+        }
+
+        public static string PostTransmog(string _url, Transmog _transmog)
+        {
+            string result = "";
+            string json = JsonConvert.SerializeObject(_transmog);
+            using (var client = new WebClient())
+            {
+                client.Headers[HttpRequestHeader.ContentType] = "application/json";
+                result = client.UploadString(_url, "POST", json);
+            }
+
+            return result;
         }
     }
 }

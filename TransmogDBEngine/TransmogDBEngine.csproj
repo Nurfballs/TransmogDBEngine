@@ -47,7 +47,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="WowDotNetAPI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\WowDotNetAPI-master\Explorers\bin\Debug\WowDotNetAPI.dll</HintPath>
+      <HintPath>..\..\WowDotNetAPI\Explorers\bin\Debug\WowDotNetAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
