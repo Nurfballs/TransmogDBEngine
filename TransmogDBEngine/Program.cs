@@ -43,14 +43,21 @@ namespace TransmogDBEngine
                 Console.WriteLine($"{DateTime.Now}: [*] {member.Character.Name} is level {member.Character.Level} and has guild rank {member.Rank}");
 
                 // Enumerate Transmogged Items
-                List<Item> TransmogrifiedItems = GetTransmogrifiedItems(realm, member.Character.Name);
+                List<TransmogItem> TransmogrifiedItems = GetTransmogrifiedItems(realm, member.Character.Name);
                 Console.WriteLine($"{DateTime.Now}: [+] {member.Character.Name} has {TransmogrifiedItems.Count()} transmogrified items");
 
                 if (TransmogrifiedItems.Count() > 3)
                 {
-                    foreach (Item item in TransmogrifiedItems)
+                    foreach (TransmogItem item in TransmogrifiedItems)
                     {
-                        Console.WriteLine($"{DateTime.Now}: [*] Transmog: {item.Name} ");
+                        if (item.Transmogrified == true)
+                        {
+                            Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}]: {item.Name} is a transmog ");
+                        } else
+                        {
+                            Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}] {item.Name} is a regular item");
+                        }
+                        
 
                     }
                     // Get the image url for the character
@@ -59,16 +66,17 @@ namespace TransmogDBEngine
                     // Create Transmog Object
                     WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
                     Character character = explorer.GetCharacter(member.Character.Realm, member.Character.Name, CharacterOptions.GetEverything);
-                    //Transmog tmog = new Transmog(character, TransmogrifiedItems);
-                    Transmog tmog = new Transmog(character);
+                    TransmogSet Appearance = new TransmogSet(character, TransmogrifiedItems);
+                    // TransmogSet Appearance = new TransmogSet(character);
 
 
-                    // Console.WriteLine(JsonConvert.SerializeObject(tmog));
+                    Console.WriteLine(JsonConvert.SerializeObject(Appearance));
                     // Post the transmog to the API
                     string url = "http://localhost:50392/api/REST/Add";
-                    Console.WriteLine($"{DateTime.Now}: [*] Posting JSON to {url}");
-                    Console.WriteLine(PostTransmog(url, tmog));
+                    // Console.WriteLine($"{DateTime.Now}: [*] Posting JSON to {url}");
+                    // Console.WriteLine(PostTransmog(url, tmog));
 
+                    Console.ReadKey(); 
                 }
                 else
                 {
@@ -177,43 +185,147 @@ namespace TransmogDBEngine
             return lvl100Members;
         }
 
-        public static List<Item> GetTransmogrifiedItems(string _realm, string _character)
+        public static List<TransmogItem> GetTransmogrifiedItems(string _realm, string _character)
         {
             // int slotCount = 0;
             WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
             Character character = explorer.GetCharacter(_realm, _character, CharacterOptions.GetItems);
 
-            List<Item> TransmogrifiedItems = new List<Item>();
+            // List<Item> TransmogrifiedItems = new List<Item>();
+            List<TransmogItem> TransmogrifiedItems = new List<TransmogItem>();
 
-            Console.WriteLine($"{DateTime.Now}: [*] Enumerating Transmogged items for {_character} ...");
-            if (character.Items.Back.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Back.TooltipParams.TransmogItem)); }
-            if (character.Items.Chest.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Chest.Id)); }
-            if (character.Items.Feet.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Feet.Id)); }
-            if (character.Items.Head.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Head.Id)); }
-            if (character.Items.Hands.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Hands.Id)); }
-            if (character.Items.Legs.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Legs.Id)); }
-            if (character.Items.MainHand.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.MainHand.Id)); }
+            Console.WriteLine($"{DateTime.Now}: [*] Enumerating items for {_character} ...");
+
+            // Back
+            if (character.Items.Back.TooltipParams.TransmogItem != 0) {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Back.TooltipParams.TransmogItem), true, SlotType.BACK));
+            }  else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Back.Id), false, SlotType.BACK));
+            }
+
+            // Chest
+            if (character.Items.Chest.TooltipParams.TransmogItem != 0) {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Chest.TooltipParams.TransmogItem), true, SlotType.CHEST));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Chest.Id), false, SlotType.CHEST));
+            }
+
+            // Feet
+            if (character.Items.Feet.TooltipParams.TransmogItem != 0) {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Feet.TooltipParams.TransmogItem), true, SlotType.FEET));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Feet.Id), false, SlotType.FEET));
+            }
+
+
+            // Head
+            if (character.Items.Head.TooltipParams.TransmogItem != 0) {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Head.TooltipParams.TransmogItem), true, SlotType.HEAD));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Head.Id), false, SlotType.HEAD));
+            }
+
+            // Hands
+            if (character.Items.Hands.TooltipParams.TransmogItem != 0) {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Hands.TooltipParams.TransmogItem), true, SlotType.HANDS));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Hands.Id), false, SlotType.HANDS));
+            }
+
+            // Legs
+            if (character.Items.Legs.TooltipParams.TransmogItem != 0) {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Legs.TooltipParams.TransmogItem), true, SlotType.LEGS));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Legs.Id), false, SlotType.LEGS));
+            }
+            // MainHand
+            if (character.Items.MainHand.TooltipParams.TransmogItem != 0) {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.MainHand.TooltipParams.TransmogItem), true, SlotType.MAINHAND));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.MainHand.Id), false, SlotType.MAINHAND));
+            }
 
             // Offhand
             if (character.Items.OffHand != null)
             {
-                if (character.Items.OffHand.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.OffHand.Id)); }
+                 if (character.Items.Ranged.TooltipParams.TransmogItem != 0)
+                    {
+                    TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.OffHand.TooltipParams.TransmogItem), true, SlotType.OFFHAND));
+                } else
+                {
+                    TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.OffHand.Id), false, SlotType.OFFHAND));
+                }
             }
 
             // Ranged
             if (character.Items.Ranged != null)
-            {
-                if (character.Items.Ranged.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Ranged.Id)); }
-
+            { 
+                if (character.Items.Ranged.TooltipParams.TransmogItem != 0)
+                {
+                    TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Ranged.TooltipParams.TransmogItem), true, SlotType.RANGED));
+                } else
+                {
+                    TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Ranged.Id), false, SlotType.RANGED));
+                }
             }
 
-            // Shirt
+            // SHIRT
             if (character.Items.Shirt != null)
             {
-                if (character.Items.Shirt.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Shirt.Id)); }
+                if (character.Items.Shirt.TooltipParams.TransmogItem != 0)
+                {
+                    TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Shirt.TooltipParams.TransmogItem), true, SlotType.SHIRT));
+                }
+                else {
+                    TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Shirt.Id), false, SlotType.SHIRT));
+                }                
+             }
+
+
+            // SHOULDER
+            if (character.Items.Shoulder.TooltipParams.TransmogItem != 0) 
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Shoulder.TooltipParams.TransmogItem), true, SlotType.SHOULDER));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Shoulder.Id), false, SlotType.SHOULDER));
             }
 
-            if (character.Items.Shoulder.TooltipParams.TransmogItem != 0) { TransmogrifiedItems.Add(explorer.GetItem(character.Items.Shoulder.Id)); }
+            // WAIST
+            if (character.Items.Waist.TooltipParams.TransmogItem != 0)
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Waist.TooltipParams.TransmogItem), true, SlotType.WAIST));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Waist.Id), false, SlotType.WAIST));
+            }
+
+            // WRIST
+            if (character.Items.Wrist.TooltipParams.TransmogItem != 0)
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Wrist.TooltipParams.TransmogItem), true, SlotType.WRIST));
+            }
+            else
+            {
+                TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.Wrist.Id), false, SlotType.WRIST));
+            }
+
+
 
             return TransmogrifiedItems;
 
@@ -233,7 +345,7 @@ namespace TransmogDBEngine
             return url;
         }
 
-        public static string PostTransmog(string _url, Transmog _transmog)
+        public static string PostTransmog(string _url, TransmogSet _transmog)
         {
             string result = "";
             string json = JsonConvert.SerializeObject(_transmog);

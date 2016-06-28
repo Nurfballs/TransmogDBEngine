@@ -8,7 +8,7 @@ using WowDotNetAPI.Models;
 
 namespace TransmogDBEngine
 {
-    class Transmog
+    class TransmogSet
     {
         public string Realm { get; set; }
         public string Name { get; set; }
@@ -17,10 +17,10 @@ namespace TransmogDBEngine
         public string Race { get; set; }
         public string Gender { get; set; }
         public string Image { get; set; }
-        // public List<TransmogItem> Items { get; set; }
+        public List<TransmogItem> Items { get; set; }
 
-        //public Transmog(Character _character, List<Item> _items)
-        public Transmog(Character _character)
+        public TransmogSet(Character _character, List<TransmogItem> _items)
+        //public TransmogSet(Character _character)
         {
             // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{Program.apikey}");
 
@@ -55,15 +55,15 @@ namespace TransmogDBEngine
             //      Add all transmogged items
             //      Iterate through which slots are not transmogged, and add them too.
 
-            //List<TransmogItem> myTmogItems = new List<TransmogItem>();
-            //foreach (Item item in _items)
+            //List<TransmogItem> Appearance = new List<TransmogItem>();
+            //foreach (TransmogItem item in _items)
             //{
-            //    TransmogItem tmogItem = new TransmogItem(item);
-            //    // Console.WriteLine($"DEBUG: ID:{tmogItem.ID} Name:{tmogItem.Name} ");
-            //    myTmogItems.Add(tmogItem);
+                //TransmogItem Appearance  = new TransmogItem(item);
+                // Console.WriteLine($"DEBUG: ID:{tmogItem.ID} Name:{tmogItem.Name} ");
+            //    Appearance.Add(item);
 
             //}
-            //Items = myTmogItems;
+            Items = _items;
         }
 
     }
