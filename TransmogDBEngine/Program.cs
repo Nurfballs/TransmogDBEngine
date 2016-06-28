@@ -15,6 +15,7 @@ namespace TransmogDBEngine
     class Program
     {
         public static string apikey = "2zews2ar44bs2pk3yny7whjr7hx9m5r9";
+        public static WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
 
         public static void Main(string[] args)
         {
@@ -22,30 +23,31 @@ namespace TransmogDBEngine
             while (true)
             {
             // Get a random realm
-             string realm = GetRandomRealm();
+             Realm realm = GetRandomRealm();
              Console.WriteLine($"{DateTime.Now}: [+] Selected: {realm}");
 
             // Select a random auction owner
-             string auctionOwner = GetRandomAuctionOwner(realm);
+             string auctionOwner = GetRandomAuctionOwner(realm.Name);
              Console.WriteLine($"{DateTime.Now}: [+] Selected: {auctionOwner}");
 
             // Get guild information
-             string guild = GetGuild(realm, auctionOwner);
+             string guild = GetGuild(realm.Name, auctionOwner);
              Console.WriteLine($"{DateTime.Now}: [+] Guild is: {guild}" );
 
-            //DEBUG
-            //string realm = "Caelestrasz";
-            //string name = "Katora";
-            //string guild = "Affinity";
+                //DEBUG
+                //string realm = "Caelestrasz";
+                //string name = "Katora";
+                //string guild = "Affinity";
 
             IEnumerable<GuildMember> lvl100Members = GetLevel100GuildMembers(realm, guild);
+
 
             foreach (GuildMember member in lvl100Members)
             {
                 Console.WriteLine($"{DateTime.Now}: [*] {member.Character.Name} is level {member.Character.Level} and has guild rank {member.Rank}");
 
                 // Enumerate Transmogged Items
-                List<TransmogItem> TransmogrifiedItems = GetTransmogrifiedItems(realm, member.Character.Name);
+                List<TransmogItem> TransmogrifiedItems = GetTransmogrifiedItems(realm.Name, member.Character.Name);
                 Console.WriteLine($"{DateTime.Now}: [+] {member.Character.Name} has {TransmogrifiedItems.Where(i => i.Transmogrified == true).Count()} transmogrified items");
 
 
@@ -53,25 +55,26 @@ namespace TransmogDBEngine
                 // if (TransmogrifiedItems.Count() > 3)
                 if (TransmogrifiedItems.Where(i=>i.Transmogrified == true).Count() > 3)
                 {
-                    
-                    foreach (TransmogItem item in TransmogrifiedItems)
-                    {
-                    //  DEBUG:
-                    //    if (item.Transmogrified == true)
-                    //    {
-                    //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}]: {item.Name} is a transmog ");
-                    //    } else
-                    //    {
-                    //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}] {item.Name} is a regular item");
-                    //    }
-                        
 
-                    }
-                    // Get the image url for the character
-                    Console.WriteLine($"{DateTime.Now}: [+] {GetCharacterImageURL(member.Character.Realm, member.Character.Name)}");
+                        //  DEBUG:
+                        //  foreach (TransmogItem item in TransmogrifiedItems)
+                        //  {
+
+                        //    if (item.Transmogrified == true)
+                        //    {
+                        //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}]: {item.Name} is a transmog ");
+                        //    } else
+                        //    {
+                        //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}] {item.Name} is a regular item");
+                        //    }
+
+
+                        //  }
+                        // Get the image url for the character
+                        Console.WriteLine($"{DateTime.Now}: [+] {GetCharacterImageURL(member.Character.Realm, member.Character.Name)}");
 
                     // Create Transmog Object
-                    WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+                    //WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
                     Character character = explorer.GetCharacter(member.Character.Realm, member.Character.Name, CharacterOptions.GetEverything);
                     TransmogSet Appearance = new TransmogSet(character, TransmogrifiedItems);
                     // TransmogSet Appearance = new TransmogSet(character);
@@ -98,13 +101,13 @@ namespace TransmogDBEngine
             }
         }
 
-        public static string GetRandomRealm()
+        public static Realm GetRandomRealm()
         {
 
             Console.WriteLine($"{DateTime.Now}: [*] Getting random realm...");
 
             // Get a random realm
-            WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+           // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
             IEnumerable<Realm> _realms = explorer.GetRealms();
 
             Random rnd = new Random();
@@ -113,14 +116,14 @@ namespace TransmogDBEngine
             List<Realm> RealmList = _realms.ToList();
             Realm randomRealm = RealmList[r];
 
-            return randomRealm.Name;
+            return randomRealm;
         }
 
         public static string GetRandomAuctionOwner(string _realm)
         {
             Console.WriteLine($"{DateTime.Now}: [*] Getting a random auction owner from {_realm} ...");
 
-            WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+           /// WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
             Auctions _auctions = explorer.GetAuctions(_realm);
             List<Auction> AuctionList = _auctions.CurrentAuctions.ToList();
 
@@ -136,7 +139,7 @@ namespace TransmogDBEngine
         public static string GetGuild(string _realm, string _name)
         {
             Character _character = new Character();
-            WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+           // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
 
             // DEBUG
             // _name = "Orwell";
@@ -176,12 +179,12 @@ namespace TransmogDBEngine
             return _character.Guild.Name;
         }
 
-        public static IEnumerable<GuildMember> GetLevel100GuildMembers(string _realm, string _guild)
+        public static IEnumerable<GuildMember> GetLevel100GuildMembers(Realm _realm, string _guild)
         {
-            WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+            // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
 
             // Get the guild information
-            Guild guild = explorer.GetGuild(_realm, _guild, GuildOptions.GetEverything);
+            Guild guild = explorer.GetGuild(explorer.Region, _realm.Name, _guild, GuildOptions.GetEverything);
             Console.WriteLine($"{DateTime.Now}: [*] {guild.Name} is a guild of level {guild.Level} and has {guild.Members.Count()} members.");
 
             // Select all level 100 characters in the guild.
@@ -195,7 +198,8 @@ namespace TransmogDBEngine
         public static List<TransmogItem> GetTransmogrifiedItems(string _realm, string _character)
         {
             // int slotCount = 0;
-            WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+            // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+
             Character character = explorer.GetCharacter(_realm, _character, CharacterOptions.GetItems);
 
             // List<Item> TransmogrifiedItems = new List<Item>();
