@@ -11,7 +11,7 @@ namespace TransmogDBEngine
 
     class TransmogItem
     {
-        public int ID { get; set; }
+        public int ItemID { get; set; }
         public string Name { get; set; }
         public bool Transmogrified { get; set; }
         public SlotType Slot { get; set; }
@@ -20,7 +20,7 @@ namespace TransmogDBEngine
 
         public TransmogItem(Item _item, bool _transmogrified, SlotType _slot)
         {
-            ID = _item.Id;
+            ItemID = _item.Id;
             Name = _item.Name;
             Transmogrified = _transmogrified;
             Slot = _slot;

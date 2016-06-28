@@ -51,18 +51,6 @@ namespace TransmogDBEngine
             Image = $"{url}/{thumbnailUrl}";
 
             // Items
-            // TO DO:
-            //      Add all transmogged items
-            //      Iterate through which slots are not transmogged, and add them too.
-
-            //List<TransmogItem> Appearance = new List<TransmogItem>();
-            //foreach (TransmogItem item in _items)
-            //{
-                //TransmogItem Appearance  = new TransmogItem(item);
-                // Console.WriteLine($"DEBUG: ID:{tmogItem.ID} Name:{tmogItem.Name} ");
-            //    Appearance.Add(item);
-
-            //}
             Items = _items;
         }
 

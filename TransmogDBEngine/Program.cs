@@ -19,22 +19,24 @@ namespace TransmogDBEngine
         public static void Main(string[] args)
         {
 
-            //// Get a random realm
-            // string realm = GetRandomRealm();
-            // Console.WriteLine($"{DateTime.Now}: [+] Selected: {realm}");
+            while (true)
+            {
+            // Get a random realm
+             string realm = GetRandomRealm();
+             Console.WriteLine($"{DateTime.Now}: [+] Selected: {realm}");
 
-            //// Select a random auction owner
-            // string auctionOwner = GetRandomAuctionOwner(realm);
-            // Console.WriteLine($"{DateTime.Now}: [+] Selected: {auctionOwner}");
+            // Select a random auction owner
+             string auctionOwner = GetRandomAuctionOwner(realm);
+             Console.WriteLine($"{DateTime.Now}: [+] Selected: {auctionOwner}");
 
-            //// Get guild information
-            // string guild = GetGuild(realm, auctionOwner);
-            // Console.WriteLine($"{DateTime.Now}: [+] Guild is: {guild}" );
+            // Get guild information
+             string guild = GetGuild(realm, auctionOwner);
+             Console.WriteLine($"{DateTime.Now}: [+] Guild is: {guild}" );
 
             //DEBUG
-            string realm = "Aggramar";
-            //string name = "Orwell";
-            string guild = "The Enclave";
+            //string realm = "Caelestrasz";
+            //string name = "Katora";
+            //string guild = "Affinity";
 
             IEnumerable<GuildMember> lvl100Members = GetLevel100GuildMembers(realm, guild);
 
@@ -44,19 +46,24 @@ namespace TransmogDBEngine
 
                 // Enumerate Transmogged Items
                 List<TransmogItem> TransmogrifiedItems = GetTransmogrifiedItems(realm, member.Character.Name);
-                Console.WriteLine($"{DateTime.Now}: [+] {member.Character.Name} has {TransmogrifiedItems.Count()} transmogrified items");
+                Console.WriteLine($"{DateTime.Now}: [+] {member.Character.Name} has {TransmogrifiedItems.Where(i => i.Transmogrified == true).Count()} transmogrified items");
 
-                if (TransmogrifiedItems.Count() > 3)
+
+
+                // if (TransmogrifiedItems.Count() > 3)
+                if (TransmogrifiedItems.Where(i=>i.Transmogrified == true).Count() > 3)
                 {
+                    
                     foreach (TransmogItem item in TransmogrifiedItems)
                     {
-                        if (item.Transmogrified == true)
-                        {
-                            Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}]: {item.Name} is a transmog ");
-                        } else
-                        {
-                            Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}] {item.Name} is a regular item");
-                        }
+                    //  DEBUG:
+                    //    if (item.Transmogrified == true)
+                    //    {
+                    //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}]: {item.Name} is a transmog ");
+                    //    } else
+                    //    {
+                    //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}] {item.Name} is a regular item");
+                    //    }
                         
 
                     }
@@ -70,13 +77,13 @@ namespace TransmogDBEngine
                     // TransmogSet Appearance = new TransmogSet(character);
 
 
-                    Console.WriteLine(JsonConvert.SerializeObject(Appearance));
+                    // Console.WriteLine(JsonConvert.SerializeObject(Appearance)); // DEBUG
                     // Post the transmog to the API
                     string url = "http://localhost:50392/api/REST/Add";
-                    // Console.WriteLine($"{DateTime.Now}: [*] Posting JSON to {url}");
-                    // Console.WriteLine(PostTransmog(url, tmog));
-
-                    Console.ReadKey(); 
+                    Console.WriteLine($"{DateTime.Now}: [*] Posting JSON to {url}");
+                    Console.WriteLine(PostTransmog(url, Appearance));
+                    
+                    // Console.ReadKey(); 
                 }
                 else
                 {
@@ -86,9 +93,9 @@ namespace TransmogDBEngine
             }
 
 
-            Console.WriteLine($"{DateTime.Now}: [+] Done!");
-            Console.ReadKey();
-
+            // Console.WriteLine($"{DateTime.Now}: [+] Done!");
+            // Console.ReadKey(); // DEBUG
+            }
         }
 
         public static string GetRandomRealm()
@@ -261,7 +268,7 @@ namespace TransmogDBEngine
             // Offhand
             if (character.Items.OffHand != null)
             {
-                 if (character.Items.Ranged.TooltipParams.TransmogItem != 0)
+                 if (character.Items.OffHand.TooltipParams.TransmogItem != 0)
                     {
                     TransmogrifiedItems.Add(new TransmogItem(explorer.GetItem(character.Items.OffHand.TooltipParams.TransmogItem), true, SlotType.OFFHAND));
                 } else
@@ -352,7 +359,17 @@ namespace TransmogDBEngine
             using (var client = new WebClient())
             {
                 client.Headers[HttpRequestHeader.ContentType] = "application/json";
-                result = client.UploadString(_url, "POST", json);
+                try
+                {
+                    result = client.UploadString(_url, "POST", json);
+                }
+                catch (Exception ex)
+                {
+
+                    Console.WriteLine($"{DateTime.Now}: [!] An error has occurred posting data to the web API.");
+                    Console.WriteLine($"{DateTime.Now}: [!] {ex.Message}");
+                }
+                
             }
 
             return result;
