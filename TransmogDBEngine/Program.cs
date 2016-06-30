@@ -38,16 +38,53 @@ namespace TransmogDBEngine
                 //string realm = "Caelestrasz";
                 //string name = "Katora";
                 //string guild = "Affinity";
+                IEnumerable<GuildMember> lvl100Members = new List<GuildMember>();
 
-            IEnumerable<GuildMember> lvl100Members = GetLevel100GuildMembers(realm, guild);
+                try
+                {
+                    // IEnumerable<GuildMember> lvl100Members = GetLevel100GuildMembers(realm, guild);
+                    lvl100Members = GetLevel100GuildMembers(realm, guild);
+                }
+                catch (Exception ex)
+                {
+
+                    Console.WriteLine($"{DateTime.Now}: [!] Unable to look up guild information for {guild}");
+                    Console.WriteLine($"{DateTime.Now}: [!] {ex.Message}");
+                    //throw;
+                    continue;
+                }
+            
 
 
             foreach (GuildMember member in lvl100Members)
             {
                 Console.WriteLine($"{DateTime.Now}: [*] {member.Character.Name} is level {member.Character.Level} and has guild rank {member.Rank}");
 
-                // Enumerate Transmogged Items
-                List<TransmogItem> TransmogrifiedItems = GetTransmogrifiedItems(realm, member.Character.Name);
+                    // Get the character info for assessment
+                    Character character = explorer.GetCharacter(member.Character.Realm, member.Character.Name, CharacterOptions.GetEverything);
+
+                    // Validate the image url
+                    string imgUrl = ValidateCharacterImageURL(realm, character);
+                    if (imgUrl == null)
+                    {
+                        // failed to lookup the image url
+                        continue;
+                    }
+
+                    // Enumerate Transmogged Items
+                    List<TransmogItem> TransmogrifiedItems = new List<TransmogItem>();
+                    try
+                    {
+                       TransmogrifiedItems = GetTransmogrifiedItems(realm, member.Character.Name);
+                    }
+                        catch (Exception ex)
+                    {
+                        Console.WriteLine($"{DateTime.Now}: [!] Unable to lookup character info for {member.Character.Name}");
+                        Console.WriteLine($"{DateTime.Now}: [!] {ex.Message}");
+                        continue;
+                    }
+                        
+                
                 Console.WriteLine($"{DateTime.Now}: [+] {member.Character.Name} has {TransmogrifiedItems.Where(i => i.Transmogrified == true).Count()} transmogrified items");
 
 
@@ -56,31 +93,12 @@ namespace TransmogDBEngine
                 if (TransmogrifiedItems.Where(i=>i.Transmogrified == true).Count() > 3)
                 {
 
-                        //  DEBUG:
-                        //  foreach (TransmogItem item in TransmogrifiedItems)
-                        //  {
-
-                        //    if (item.Transmogrified == true)
-                        //    {
-                        //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}]: {item.Name} is a transmog ");
-                        //    } else
-                        //    {
-                        //        Console.WriteLine($"{DateTime.Now}: [*] [{item.Slot}] {item.Name} is a regular item");
-                        //    }
-
-
-                        //  }
-                        // Get the image url for the character
-                        Console.WriteLine($"{DateTime.Now}: [+] {GetCharacterImageURL(member.Character.Realm, member.Character.Name)}");
-
                     // Create Transmog Object
-                    //WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
-                    Character character = explorer.GetCharacter(member.Character.Realm, member.Character.Name, CharacterOptions.GetEverything);
+                    // Character character = explorer.GetCharacter(member.Character.Realm, member.Character.Name, CharacterOptions.GetEverything);
+
                     TransmogSet Appearance = new TransmogSet(character, TransmogrifiedItems);
                     // TransmogSet Appearance = new TransmogSet(character);
 
-
-                    // Console.WriteLine(JsonConvert.SerializeObject(Appearance)); // DEBUG
                     // Post the transmog to the API
                     string url = "http://localhost:50392/api/REST/Add";
                     Console.WriteLine($"{DateTime.Now}: [*] Posting JSON to {url}");
@@ -95,8 +113,7 @@ namespace TransmogDBEngine
 
             }
 
-
-            // Console.WriteLine($"{DateTime.Now}: [+] Done!");
+                Console.WriteLine("");
             // Console.ReadKey(); // DEBUG
             }
         }
@@ -107,7 +124,6 @@ namespace TransmogDBEngine
             Console.WriteLine($"{DateTime.Now}: [*] Getting random realm...");
 
             // Get a random realm
-           // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
             IEnumerable<Realm> _realms = explorer.GetRealms();
 
             Random rnd = new Random();
@@ -123,7 +139,6 @@ namespace TransmogDBEngine
         {
             Console.WriteLine($"{DateTime.Now}: [*] Getting a random auction owner from {_realm} ...");
 
-           /// WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
             Auctions _auctions = explorer.GetAuctions(_realm);
             List<Auction> AuctionList = _auctions.CurrentAuctions.ToList();
 
@@ -139,7 +154,6 @@ namespace TransmogDBEngine
         public static string GetGuild(string _realm, string _name)
         {
             Character _character = new Character();
-           // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
 
             // DEBUG
             // _name = "Orwell";
@@ -167,7 +181,6 @@ namespace TransmogDBEngine
                 catch (Exception ex)
                 {
                      
-                    // character lookup failed
                     Console.WriteLine($"{DateTime.Now}: [!] Unable to look up character information for {_name} of {_realm}");
                     Console.WriteLine($"{DateTime.Now}: [!] {ex.Message}");
 
@@ -181,7 +194,6 @@ namespace TransmogDBEngine
 
         public static IEnumerable<GuildMember> GetLevel100GuildMembers(Realm _realm, string _guild)
         {
-            // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
 
             // Get the guild information
             Guild guild = explorer.GetGuild(explorer.Region, _realm.Name, _guild, GuildOptions.GetEverything);
@@ -197,9 +209,6 @@ namespace TransmogDBEngine
 
         public static List<TransmogItem> GetTransmogrifiedItems(Realm _realm, string _character)
         {
-            // int slotCount = 0;
-            // WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
-
             Character character = explorer.GetCharacter(explorer.Region, _realm.Name, _character, CharacterOptions.GetItems);
             //Character character = explorer.GetCharacter(_realm, _character, CharacterOptions.GetItems);
 
@@ -343,18 +352,35 @@ namespace TransmogDBEngine
 
         }
 
-        public static string GetCharacterImageURL(string _realm, string _character)
+        public static string ValidateCharacterImageURL(Realm _realm, Character _character)
         {
             string url = "http://render-api-us.worldofwarcraft.com/static-render/us";
+            //WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
+            //Character character = explorer.GetCharacter(_realm.Name, _character.Name, CharacterOptions.GetItems);
+            string thumbnailUrl = _character.Thumbnail.Replace("avatar", "profilemain");
+            string fullUrl = $"{url}/{thumbnailUrl}";
 
-            WowExplorer explorer = new WowExplorer(Region.US, Locale.en_US, $"{apikey}");
-            Character character = explorer.GetCharacter(_realm, _character, CharacterOptions.GetItems);
+            try
+            {
+                // creat the webrequest
+                HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(fullUrl);
 
-            string thumbnailUrl = character.Thumbnail.Replace("avatar", "profilemain");
+                //send request and wait for response
+                HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
 
-            url = $"{url}/{thumbnailUrl}";
-
-            return url;
+                if (myHttpWebResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    Console.WriteLine($"{DateTime.Now}: [+] Profile image has been validated.");
+                }
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine($"{DateTime.Now}: [!] Unable to lookup profile image for {_character.Name}");
+                Console.WriteLine($"{DateTime.Now}: [!] {e.Message}");
+                fullUrl = null;
+                //throw;
+            }
+            return fullUrl;
         }
 
         public static string PostTransmog(string _url, TransmogSet _transmog)

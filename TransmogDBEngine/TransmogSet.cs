@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using WowDotNetAPI;
@@ -10,6 +11,7 @@ namespace TransmogDBEngine
 {
     class TransmogSet
     {
+
         public string Realm { get; set; }
         public string Name { get; set; }
         // public string Spec { get; set; }
@@ -46,6 +48,7 @@ namespace TransmogDBEngine
             Gender = myGender.ToString();
 
             // Image
+            //Image = GetCharacterImageURL(_character.Realm, _character.Name);
             string url = "http://render-api-us.worldofwarcraft.com/static-render/us";
             string thumbnailUrl = _character.Thumbnail.Replace("avatar", "profilemain");
             Image = $"{url}/{thumbnailUrl}";
@@ -53,6 +56,10 @@ namespace TransmogDBEngine
             // Items
             Items = _items;
         }
+
+ 
+
+
 
     }
 
