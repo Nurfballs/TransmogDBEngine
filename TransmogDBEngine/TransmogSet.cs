@@ -20,6 +20,7 @@ namespace TransmogDBEngine
         public string Gender { get; set; }
         public string Image { get; set; }
         public List<TransmogItem> Items { get; set; }
+        public DateTime Updated { get; set; }
 
         public TransmogSet(Character _character, List<TransmogItem> _items)
         //public TransmogSet(Character _character)
@@ -55,6 +56,9 @@ namespace TransmogDBEngine
 
             // Items
             Items = _items;
+
+            // Updated
+            Updated = DateTime.Now;
         }
 
  

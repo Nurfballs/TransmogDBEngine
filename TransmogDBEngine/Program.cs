@@ -22,22 +22,24 @@ namespace TransmogDBEngine
 
             while (true)
             {
-            // Get a random realm
-             Realm realm = GetRandomRealm();
-             Console.WriteLine($"{DateTime.Now}: [+] Selected: {realm.Name}");
+                //// Get a random realm
+                Realm realm = GetRandomRealm();
+                Console.WriteLine($"{DateTime.Now}: [+] Selected: {realm.Name}");
 
-            // Select a random auction owner
-             string auctionOwner = GetRandomAuctionOwner(realm.Name);
-             Console.WriteLine($"{DateTime.Now}: [+] Selected: {auctionOwner}");
+                // Select a random auction owner
+                string auctionOwner = GetRandomAuctionOwner(realm.Name);
+                Console.WriteLine($"{DateTime.Now}: [+] Selected: {auctionOwner}");
 
-            // Get guild information
-             string guild = GetGuild(realm.Name, auctionOwner);
-             Console.WriteLine($"{DateTime.Now}: [+] Guild is: {guild}" );
+                // Get guild information
+                string guild = GetGuild(realm.Name, auctionOwner);
+                Console.WriteLine($"{DateTime.Now}: [+] Guild is: {guild}");
 
                 //DEBUG
-                //string realm = "Caelestrasz";
+                //IEnumerable<Realm> _realms = explorer.GetRealms();
+                //Realm realm = _realms.Where(i => i.Name == "Caelestrasz").FirstOrDefault();
                 //string name = "Katora";
                 //string guild = "Affinity";
+
                 IEnumerable<GuildMember> lvl100Members = new List<GuildMember>();
 
                 try
@@ -58,7 +60,23 @@ namespace TransmogDBEngine
 
             foreach (GuildMember member in lvl100Members)
             {
-                Console.WriteLine($"{DateTime.Now}: [*] {member.Character.Name} is level {member.Character.Level} and has guild rank {member.Rank}");
+                     Console.WriteLine($"{DateTime.Now}: [*] {member.Character.Name} is level {member.Character.Level} and has guild rank {member.Rank}");
+
+                    // See if the character exists already
+                    HttpStatusCode result = LookupCharacter(member.Character.Realm, member.Character.Name).StatusCode;
+                    switch (result)
+                    {
+                        case HttpStatusCode.Found:
+                            Console.WriteLine($"{DateTime.Now}: [!] Character already exists. Skiping ...");
+                            continue;
+                        case HttpStatusCode.NotFound:
+                            //Console.WriteLine($"{DateTime.Now}: [+] Character not found.");
+                            break;
+                        default:
+                            Console.WriteLine($"{DateTime.Now}: [!] An error has occurred checking this character in the database.");
+                            Console.WriteLine($"{DateTime.Now}: {result.ToString()}");
+                            continue;
+                    }
 
                     // Get the character info for assessment
                     Character character = explorer.GetCharacter(member.Character.Realm, member.Character.Name, CharacterOptions.GetEverything);
@@ -404,6 +422,33 @@ namespace TransmogDBEngine
             }
 
             return result;
+        }
+
+        public static HttpWebResponse LookupCharacter(string _realm, string _character)
+        {
+
+            Console.WriteLine($"{DateTime.Now}: [*] Checking if {_character} of {_realm} already exists in the database");
+
+            // create the webrequest
+            string url = $"http://localhost:50392/api/Lookup?realm={_realm}&character={_character}";
+            HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+
+            //send request and wait for response
+            HttpWebResponse response;
+            try
+            {
+                response = myHttpWebRequest.GetResponse() as HttpWebResponse;
+                //HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
+
+            }
+            catch (WebException ex)
+            {
+
+                response = ex.Response as HttpWebResponse;
+            }
+
+            return response;
+            
         }
     }
 }
